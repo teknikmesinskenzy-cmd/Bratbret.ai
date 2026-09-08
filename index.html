@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="BratBret Generator — buat kartu teks estetik dengan font, warna, dan watermark custom.">
+<title>BratBret Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;700&family=VT323&family=Manrope:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700;900&family=Bodoni+Moda:wght@400;600;700;900&family=Cormorant+Garamond:wght@400;500;600;700&family=Caveat:wght@400;600;700&family=Sacramento&family=Permanent+Marker&family=Courier+Prime:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"]{
+    --outer:#000000;
+    --app-bg:#120C10;
+    --card-bg:#1E1A1B;
+    --input-bg:#1B1517;
+    --border:#371D26;
+    --accent:#DA658F;
+    --accent-ink:#22121A;
+    --accent-soft:rgba(218,101,143,.16);
+    --text:#F3ECEE;
+    --text-dim:#9C868F;
+    --overlay:rgba(0,0,0,.62);
+  }
+  :root[data-theme="light"]{
+    --outer:#EAE5E1;
+    --app-bg:#FBF9F7;
+    --card-bg:#F2EEEA;
+    --input-bg:#FFFFFF;
+    --border:#E1D8D2;
+    --accent:#33302D;
+    --accent-ink:#FBF9F7;
+    --accent-soft:rgba(51,48,45,.08);
+    --text:#221F1D;
+    --text-dim:#77706A;
+    --overlay:rgba(20,17,15,.4);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--outer);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:28px 16px;
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    transition:background .25s ease;
+  }
+
+  .app{
+    width:100%;
+    max-width:430px;
+    background:var(--app-bg);
+    border:1px solid var(--border);
+    border-radius:28px;
+    padding:20px;
+    box-shadow:0 40px 80px -40px rgba(0,0,0,.55);
+    transition:background .25s ease, border-color .25s ease;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .logo{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:-.01em;
+  }
+  .logo .a{color:var(--text);}
+  .logo .b{color:var(--accent);}
+  .actions{display:flex;gap:8px;}
+  .icon-btn{
+    width:40px;height:40px;
+    border-radius:12px;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text);
+    cursor:pointer;
+    transition:background .15s ease, transform .1s ease, border-color .15s ease;
+  }
+  .icon-btn:hover{background:var(--accent-soft);border-color:var(--accent);}
+  .icon-btn:active{transform:scale(.93);}
+  .icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ---------- Canvas ---------- */
+  .canvas-wrap{margin-bottom:14px;}
+  .canvas-card{
+    position:relative;
+    width:100%;
+    aspect-ratio:4/5;
+    border-radius:20px;
+    overflow:hidden;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    box-shadow:0 0 0 1px var(--border), 0 34px 60px -32px rgba(218,101,143,.28);
+  }
+  canvas{width:100%;height:100%;display:block;}
+
+  /* ---------- Control bar ---------- */
+  .control-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .zoom-control{
+    display:flex;align-items:center;gap:2px;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:4px;
+  }
+  .zoom-btn{
+    width:28px;height:28px;border-radius:50%;
+    background:transparent;border:none;color:var(--text);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .zoom-btn:hover{background:var(--accent-soft);}
+  .zoom-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .zoom-label{
+    font-size:12px;min-width:38px;text-align:center;
+    color:var(--text-dim);font-variant-numeric:tabular-nums;
+  }
+
+  .pill-btn{
+    display:flex;align-items:center;gap:6px;
+    padding:9px 14px;border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--card-bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:13px;font-weight:600;
+    cursor:pointer;white-space:nowrap;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .pill-btn:hover{border-color:var(--accent);}
+  .pill-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .pill-btn.accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+  .pill-btn.accent:hover{filter:brightness(1.05);}
+  .pill-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);}
+
+  /* ---------- Color panel ---------- */
+  .color-panel{
+    display:flex;gap:8px;
+    max-height:0;opacity:0;overflow:hidden;
+    transition:max-height .25s ease, opacity .2s ease, margin .25s ease;
+  }
+  .color-panel.open{max-height:70px;opacity:1;margin-bottom:14px;}
+  .color-pill{
+    flex:1;position:relative;
+    display:flex;align-items:center;gap:8px;
+    padding:9px 12px;border-radius:14px;
+    background:var(--card-bg);border:1px solid var(--border);
+    font-size:12px;color:var(--text-dim);cursor:pointer;
+  }
+  .color-pill input[type="color"]{
+    position:absolute;inset:0;width:100%;height:100%;
+    opacity:0;cursor:pointer;border:none;padding:0;
+  }
+  .swatch{
+    width:18px;height:18px;border-radius:50%;flex-shrink:0;
+    border:1px solid rgba(128,128,128,.35);
+  }
+
+  /* ---------- Fields ---------- */
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;
+  }
+  .select-wrap{position:relative;}
+  select, textarea, input[type="text"]{
+    width:100%;
+    background:var(--input-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    resize:none;
+  }
+  select{appearance:none;-webkit-appearance:none;padding-right:38px;cursor:pointer;}
+  .select-wrap svg{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    width:16px;height:16px;stroke:var(--text-dim);fill:none;
+    stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+    pointer-events:none;
+  }
+  textarea{min-height:72px;line-height:1.4;}
+  select:focus, textarea:focus, input:focus{
+    outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:var(--overlay);
+    display:flex;align-items:flex-end;justify-content:center;
+    z-index:50;opacity:0;pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .modal-overlay.open{opacity:1;pointer-events:auto;}
+  .modal{
+    width:100%;max-width:430px;
+    background:var(--app-bg);
+    border:1px solid var(--border);
+    border-bottom:none;
+    border-radius:22px 22px 0 0;
+    padding:20px;
+    transform:translateY(16px);
+    transition:transform .22s ease;
+  }
+  .modal-overlay.open .modal{transform:translateY(0);}
+  .modal-header{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;
+  }
+  .modal-header h2{
+    margin:0;font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;
+  }
+  .modal-section{margin-bottom:18px;}
+  .modal-section > .label-row{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  }
+  .modal-section label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);}
+  .align-group{display:flex;gap:8px;}
+  .align-group .icon-btn{flex:1;}
+  .align-group .icon-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);}
+
+  .switch{position:relative;width:42px;height:24px;flex-shrink:0;}
+  .switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;}
+  .switch .track{
+    position:absolute;inset:0;border-radius:999px;background:var(--card-bg);
+    border:1px solid var(--border);transition:background .15s ease;
+  }
+  .switch .thumb{
+    position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+    background:var(--text-dim);transition:transform .18s ease, background .15s ease;
+  }
+  .switch input:checked + .track{background:var(--accent-soft);border-color:var(--accent);}
+  .switch input:checked + .track .thumb{transform:translateX(18px);background:var(--accent);}
+
+  .reset-btn{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px;border-radius:12px;border:1px solid var(--border);
+    background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif;
+    font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .reset-btn:hover{border-color:var(--accent);}
+  .reset-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  @media (max-width:400px){
+    body{padding:14px 8px;}
+    .app{padding:16px;border-radius:22px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logo"><span class="a">Brat</span><span class="b">Bret</span></div>
+    <div class="actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Ganti mode tampilan" title="Ganti Mode"></button>
+      <button class="icon-btn" id="settingsToggle" type="button" aria-label="Pengaturan" title="Pengaturan">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="canvas-wrap">
+    <div class="canvas-card">
+      <canvas id="canvas" width="1080" height="1350" aria-label="Pratinjau kartu teks"></canvas>
+    </div>
+  </div>
+
+  <div class="control-bar">
+    <div class="zoom-control">
+      <button class="zoom-btn" id="zoomOut" type="button" aria-label="Perkecil teks">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <span class="zoom-label" id="zoomLabel">100%</span>
+      <button class="zoom-btn" id="zoomIn" type="button" aria-label="Perbesar teks">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+
+    <button class="pill-btn" id="colorToggle" type="button" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-.9.7-1.5 1.5-1.5H16a4 4 0 0 0 4-4c0-4.4-3.6-8-8-8Z"/><circle cx="7.5" cy="10.5" r="1.1"/><circle cx="10.5" cy="7" r="1.1"/><circle cx="15" cy="7.5" r="1.1"/><circle cx="17" cy="11" r="1.1"/></svg>
+      Ganti Warna
+    </button>
+
+    <button class="pill-btn accent" id="downloadBtn" type="button">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      Download
+    </button>
+  </div>
+
+  <div class="color-panel" id="colorPanel">
+    <label class="color-pill">
+      <span class="swatch" id="bgSwatch"></span>
+      Warna Latar
+      <input type="color" id="bgColorInput" value="#1E1A1B">
+    </label>
+    <label class="color-pill">
+      <span class="swatch" id="textSwatch"></span>
+      Warna Teks
+      <input type="color" id="textColorInput" value="#DA658F">
+    </label>
+  </div>
+
+  <div class="field">
+    <label for="fontSelect">Font</label>
+    <div class="select-wrap">
+      <select id="fontSelect">
+        <optgroup label="Brat Original / Sans">
+          <option value="'Arial Narrow', Arial, sans-serif">Arial Narrow</option>
+          <option value="'Inter', sans-serif">Inter</option>
+          <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+        </optgroup>
+        <optgroup label="Y2K / Display / Edgy">
+          <option value="'Syne', sans-serif" selected>Syne</option>
+          <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+          <option value="'VT323', monospace">VT323</option>
+          <option value="'Manrope', sans-serif">Uncut Sans</option>
+        </optgroup>
+        <optgroup label="Aesthetic Serif">
+          <option value="'Playfair Display', serif">Playfair Display</option>
+          <option value="'Bodoni Moda', serif">Bodoni Moda</option>
+          <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+        </optgroup>
+        <optgroup label="Handwriting / Y2K Script">
+          <option value="'Caveat', cursive">Caveat</option>
+          <option value="'Sacramento', cursive">Sacramento</option>
+          <option value="'Permanent Marker', cursive">Permanent Marker</option>
+        </optgroup>
+        <optgroup label="Monospace / Retro Tech">
+          <option value="'Courier Prime', monospace">Courier Prime</option>
+          <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+        </optgroup>
+      </select>
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="messageInput">Message Teks</label>
+    <textarea id="messageInput" maxlength="220" rows="3">tulis pesanmu di sini</textarea>
+  </div>
+
+  <div class="field">
+    <label for="watermarkInput">Watermark Teks</label>
+    <input type="text" id="watermarkInput" maxlength="60" value="@bratbret">
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Pengaturan</h2>
+      <button class="icon-btn" id="closeSettings" type="button" aria-label="Tutup pengaturan">
+        <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-section">
+      <div class="label-row"><label>Perataan Teks</label></div>
+      <div class="align-group" role="group" aria-label="Perataan teks pesan">
+        <button class="icon-btn" data-align="left" type="button" aria-label="Rata kiri" aria-pressed="false">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="18" y2="18"/></svg>
+        </button>
+        <button class="icon-btn" data-align="center" type="button" aria-label="Rata tengah" aria-pressed="true">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>
+        </button>
+        <button class="icon-btn" data-align="right" type="button" aria-label="Rata kanan" aria-pressed="false">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="6" y1="18" x2="20" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="label-row">
+        <label for="watermarkSwitch">Tampilkan Watermark</label>
+        <span class="switch">
+          <input type="checkbox" id="watermarkSwitch" checked>
+          <span class="track"><span class="thumb"></span></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="modal-section" style="margin-bottom:4px;">
+      <button class="reset-btn" id="resetBtn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 8 8 8"/></svg>
+        Atur Ulang ke Default
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- Icons ---------------- */
+  var ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+  var ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>';
+
+  /* ---------------- Defaults / State ---------------- */
+  var DEFAULTS = {
+    bgColor: '#1E1A1B',
+    textColor: '#DA658F',
+    font: "'Syne', sans-serif",
+    message: 'tulis pesanmu di sini',
+    watermark: '@bratbret',
+    zoom: 100,
+    align: 'center',
+    showWatermark: true
+  };
+
+  var state = {
+    theme: 'dark',
+    bgColor: DEFAULTS.bgColor,
+    textColor: DEFAULTS.textColor,
+    font: DEFAULTS.font,
+    message: DEFAULTS.message,
+    watermark: DEFAULTS.watermark,
+    zoom: DEFAULTS.zoom,
+    align: DEFAULTS.align,
+    showWatermark: DEFAULTS.showWatermark
+  };
+
+  /* ---------------- Element refs ---------------- */
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+
+  var themeToggle = document.getElementById('themeToggle');
+  var settingsToggle = document.getElementById('settingsToggle');
+  var settingsOverlay = document.getElementById('settingsOverlay');
+  var closeSettings = document.getElementById('closeSettings');
+
+  var zoomOut = document.getElementById('zoomOut');
+  var zoomIn = document.getElementById('zoomIn');
+  var zoomLabel = document.getElementById('zoomLabel');
+
+  var colorToggle = document.getElementById('colorToggle');
+  var colorPanel = document.getElementById('colorPanel');
+  var bgColorInput = document.getElementById('bgColorInput');
+  var textColorInput = document.getElementById('textColorInput');
+  var bgSwatch = document.getElementById('bgSwatch');
+  var textSwatch = document.getElementById('textSwatch');
+
+  var fontSelect = document.getElementById('fontSelect');
+  var messageInput = document.getElementById('messageInput');
+  var watermarkInput = document.getElementById('watermarkInput');
+
+  var downloadBtn = document.getElementById('downloadBtn');
+  var alignButtons = document.querySelectorAll('[data-align]');
+  var watermarkSwitch = document.getElementById('watermarkSwitch');
+  var resetBtn = document.getElementById('resetBtn');
+
+  /* ---------------- Helpers ---------------- */
+  function getWeightForFont(value){
+    if(value.indexOf('Playfair') > -1 || value.indexOf('Bodoni') > -1 || value.indexOf('Cormorant') > -1) return 600;
+    if(value.indexOf('Caveat') > -1 || value.indexOf('Sacramento') > -1 || value.indexOf('Permanent Marker') > -1) return 400;
+    if(value.indexOf('VT323') > -1 || value.indexOf('Courier Prime') > -1 || value.indexOf('Share Tech Mono') > -1) return 400;
+    return 700;
+  }
+
+  function getLineHeightMultiplier(value){
+    if(value.indexOf('cursive') > -1) return 1.35;
+    if(value.indexOf('serif') > -1) return 1.25;
+    if(value.indexOf('monospace') > -1) return 1.3;
+    return 1.06;
+  }
+
+  function extractFamilyName(value){
+    var m = value.match(/^'([^']+)'/);
+    return m ? m[1] : value.split(',')[0].trim();
+  }
+
+  function wrapLines(context, text, maxWidth){
+    var paragraphs = String(text || '').split(/\n/);
+    var lines = [];
+    paragraphs.forEach(function(p){
+      if(p.trim() === ''){ lines.push(''); return; }
+      var words = p.split(/\s+/).filter(Boolean);
+      var current = '';
+      words.forEach(function(word){
+        var test = current ? current + ' ' + word : word;
+        if(context.measureText(test).width <= maxWidth || !current){
+          current = test;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      });
+      if(current) lines.push(current);
+    });
+    return lines;
+  }
+
+  /* ---------------- Font loading ---------------- */
+  function ensureFontLoaded(value){
+    var family = extractFamilyName(value);
+    if(family === 'Arial Narrow'){
+      return Promise.resolve();
+    }
+    var weight = getWeightForFont(value);
+    var jobs = [];
+    try {
+      jobs.push(document.fonts.load(weight + ' 100px "' + family + '"'));
+      jobs.push(document.fonts.load('400 100px "' + family + '"'));
+    } catch(e){ /* ignore */ }
+    return Promise.all(jobs).catch(function(){});
+  }
+
+  /* ---------------- Draw ---------------- */
+  function draw(){
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = state.bgColor;
+    ctx.fillRect(0, 0, W, H);
+
+    var padX = W * 0.09;
+    var zoomFactor = state.zoom / 100;
+    var weight = getWeightForFont(state.font);
+    var lineHeightMult = getLineHeightMultiplier(state.font);
+
+    var wmFontPx = Math.max(16, W * 0.03 * zoomFactor);
+    var wmTop = H * 0.065;
+
+    if(state.showWatermark && state.watermark.trim()){
+      ctx.font = '600 ' + wmFontPx + 'px ' + state.font;
+      ctx.fillStyle = state.textColor;
+      ctx.globalAlpha = 0.78;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(state.watermark, padX, wmTop);
+      ctx.globalAlpha = 1;
+    }
+
+    var msgFontPx = W * 0.115 * zoomFactor;
+    ctx.font = weight + ' ' + msgFontPx + 'px ' + state.font;
+    var maxWidth = W - padX * 2;
+    var lines = wrapLines(ctx, state.message, maxWidth);
+    var lineHeight = msgFontPx * lineHeightMult;
+    var blockHeight = lines.length * lineHeight;
+
+    var areaTop = wmTop + (state.showWatermark && state.watermark.trim() ? wmFontPx * 1.8 : 0) + H * 0.02;
+    var areaBottom = H - H * 0.075;
+    var areaHeight = Math.max(0, areaBottom - areaTop);
+    var startY = areaTop + Math.max(0, (areaHeight - blockHeight) / 2);
+
+    ctx.fillStyle = state.textColor;
+    ctx.textBaseline = 'top';
+    ctx.textAlign = state.align;
+    var xPos = state.align === 'left' ? padX : (state.align === 'right' ? W - padX : W / 2);
+
+    lines.forEach(function(line, i){
+      ctx.fillText(line, xPos, startY + i * lineHeight);
+    });
+  }
+
+  /* ---------------- Theme ---------------- */
+  function applyTheme(theme){
+    state.theme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.innerHTML = theme === 'dark' ? ICON_MOON : ICON_SUN;
+  }
+
+  themeToggle.addEventListener('click', function(){
+    applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------------- Settings modal ---------------- */
+  function openSettings(){
+    settingsOverlay.classList.add('open');
+  }
+  function closeSettingsModal(){
+    settingsOverlay.classList.remove('open');
+  }
+  settingsToggle.addEventListener('click', openSettings);
+  closeSettings.addEventListener('click', closeSettingsModal);
+  settingsOverlay.addEventListener('click', function(e){
+    if(e.target === settingsOverlay) closeSettingsModal();
+  });
+
+  /* ---------------- Zoom ---------------- */
+  function setZoom(val){
+    state.zoom = Math.max(50, Math.min(200, val));
+    zoomLabel.textContent = state.zoom + '%';
+    draw();
+  }
+  zoomOut.addEventListener('click', function(){ setZoom(state.zoom - 10); });
+  zoomIn.addEventListener('click', function(){ setZoom(state.zoom + 10); });
+
+  /* ---------------- Color panel ---------------- */
+  colorToggle.addEventListener('click', function(){
+    var isOpen = colorPanel.classList.toggle('open');
+    colorToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  function updateSwatches(){
+    bgSwatch.style.background = state.bgColor;
+    textSwatch.style.background = state.textColor;
+  }
+
+  bgColorInput.addEventListener('input', function(){
+    state.bgColor = bgColorInput.value;
+    updateSwatches();
+    draw();
+  });
+  textColorInput.addEventListener('input', function(){
+    state.textColor = textColorInput.value;
+    updateSwatches();
+    draw();
+  });
+
+  /* ---------------- Font select ---------------- */
+  fontSelect.addEventListener('change', function(){
+    state.font = fontSelect.value;
+    draw();
+    ensureFontLoaded(state.font).then(draw);
+  });
+
+  /* ---------------- Text inputs ---------------- */
+  messageInput.addEventListener('input', function(){
+    state.message = messageInput.value;
+    draw();
+  });
+  watermarkInput.addEventListener('input', function(){
+    state.watermark = watermarkInput.value;
+    draw();
+  });
+
+  /* ---------------- Alignment ---------------- */
+  alignButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      state.align = btn.getAttribute('data-align');
+      alignButtons.forEach(function(b){ b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      draw();
+    });
+  });
+
+  /* ---------------- Watermark visibility ---------------- */
+  watermarkSwitch.addEventListener('change', function(){
+    state.showWatermark = watermarkSwitch.checked;
+    draw();
+  });
+
+  /* ---------------- Reset ---------------- */
+  resetBtn.addEventListener('click', function(){
+    state.bgColor = DEFAULTS.bgColor;
+    state.textColor = DEFAULTS.textColor;
+    state.font = DEFAULTS.font;
+    state.message = DEFAULTS.message;
+    state.watermark = DEFAULTS.watermark;
+    state.zoom = DEFAULTS.zoom;
+    state.align = DEFAULTS.align;
+    state.showWatermark = DEFAULTS.showWatermark;
+
+    bgColorInput.value = state.bgColor;
+    textColorInput.value = state.textColor;
+    fontSelect.value = state.font;
+    messageInput.value = state.message;
+    watermarkInput.value = state.watermark;
+    zoomLabel.textContent = state.zoom + '%';
+    watermarkSwitch.checked = state.showWatermark;
+    alignButtons.forEach(function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-align') === state.align ? 'true' : 'false');
+    });
+    updateSwatches();
+    ensureFontLoaded(state.font).then(draw);
+    draw();
+  });
+
+  /* ---------------- Download ---------------- */
+  downloadBtn.addEventListener('click', function(){
+    var link = document.createElement('a');
+    link.download = 'bratbret-' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  });
+
+  /* ---------------- Init ---------------- */
+  applyTheme('dark');
+  updateSwatches();
+  zoomLabel.textContent = state.zoom + '%';
+  draw();
+
+  ensureFontLoaded(state.font).then(draw);
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(draw);
+  }
+})();
+</script>
+</body>
+</html>
